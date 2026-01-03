@@ -41,7 +41,6 @@ db.getConnection((err, connection) => {
 // Initialize database tables
 function initializeDatabase() {
     const queries = [
-        // Users table
         `CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
             username VARCHAR(255) UNIQUE NOT NULL,
@@ -50,14 +49,12 @@ function initializeDatabase() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
         
-        // Categories table
         `CREATE TABLE IF NOT EXISTS categories (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) UNIQUE NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
         
-        // Inventory items table
         `CREATE TABLE IF NOT EXISTS inventory (
             id INT AUTO_INCREMENT PRIMARY KEY,
             no INT NOT NULL,
@@ -100,8 +97,6 @@ function authenticateToken(req, res, next) {
         next();
     });
 }
-
-// ============ AUTH ROUTES ============
 
 // Register
 app.post('/api/auth/register', (req, res) => {
@@ -162,8 +157,6 @@ app.post('/api/auth/login', (req, res) => {
     );
 });
 
-// ============ CATEGORY ROUTES ============
-
 // Get all categories
 app.get('/api/categories', authenticateToken, (req, res) => {
     db.query('SELECT name FROM categories ORDER BY name', (err, rows) => {
@@ -206,7 +199,6 @@ app.put('/api/categories/:oldName', authenticateToken, (req, res) => {
 
     const trimmedNewName = newName.trim();
 
-    // Update category name
     db.query(
         'UPDATE categories SET name = ? WHERE name = ?',
         [trimmedNewName, oldName],
@@ -215,7 +207,6 @@ app.put('/api/categories/:oldName', authenticateToken, (req, res) => {
                 return res.status(500).json({ message: 'Error updating category', error: err.message });
             }
 
-            // Update all inventory items with old category
             db.query(
                 'UPDATE inventory SET kategori = ? WHERE kategori = ?',
                 [trimmedNewName, oldName],
@@ -245,8 +236,6 @@ app.delete('/api/categories/:name', authenticateToken, (req, res) => {
         }
     );
 });
-
-// ============ INVENTORY ROUTES ============
 
 // Get all inventory items
 app.get('/api/inventory', authenticateToken, (req, res) => {
@@ -287,7 +276,6 @@ app.post('/api/inventory', authenticateToken, (req, res) => {
         return res.status(400).json({ message: 'Nama and kategori required' });
     }
 
-    // Get max no
     db.query('SELECT MAX(no) as maxNo FROM inventory', (err, result) => {
         const no = (result[0]?.maxNo || 0) + 1;
 
@@ -382,11 +370,11 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Server is running' });
 });
 
-// Test endpoint (tidak perlu auth)
+// Test endpoint
 app.get('/api/test', (req, res) => {
     res.json({ 
         status: 'OK', 
-        message: 'Backend is running',
+        message: 'Backend is running with MySQL',
         timestamp: new Date().toISOString()
     });
 });
